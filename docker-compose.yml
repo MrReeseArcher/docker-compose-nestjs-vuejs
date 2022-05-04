@@ -1,0 +1,51 @@
+version: '3.0'
+
+services:
+  nest:
+#    image: mrreese/repo:nestjs
+    build: ${NESTJS_PATH}/
+    volumes:
+      - ${NESTJS_PATH}:/app
+    ports:
+      - 3001:5000
+    depends_on:
+      - postgres
+
+  vue:
+    build: ${VUEJS_PATH}/
+    volumes:
+      - ${VUEJS_PATH}:/app
+    ports:
+      - 3000:3000
+
+  nginx:
+#    image: mrreese/repo:nestjs
+    image: nginx:alpine
+    container_name: nginx
+    volumes:
+      - .docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+#      - ${VUEJS_PATH}/dist:/var/www/html/frontend
+    restart: always
+    depends_on:
+      - nest
+      - vue
+    ports:
+      - 80:80
+
+  postgres:
+    container_name: postgres
+    image: postgres:13.4-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - 15432:5432
+
+volumes:
+  pgdata:
